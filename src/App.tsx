@@ -1,30 +1,19 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/context/AuthContext";
-import Login from "./pages/Login";
-import Tables from "./pages/Tables";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
+import Tables from "@/pages/Tables"
+import MenuSelection from "@/pages/MenuSelection"
+import { Toaster } from "@/components/ui/toaster"
 
-const queryClient = new QueryClient();
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Tables />} />
+        <Route path="/tables" element={<Tables />} />
+        <Route path="/menu" element={<MenuSelection />} />
+      </Routes>
+      <Toaster />
+    </Router>
+  )
+}
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/tables" element={<Tables />} />
-            <Route path="/" element={<Navigate to="/login" replace />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
-
-export default App;
+export default App
