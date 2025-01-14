@@ -34,7 +34,8 @@ const Tables = () => {
   };
 
   const handleTableClick = (tableId: number) => {
-    navigate(`/menu/${tableId}`);
+    // Agora navegamos diretamente para a rota /menu
+    navigate("/menu");
   };
 
   return (
