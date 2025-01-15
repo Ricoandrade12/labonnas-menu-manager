@@ -1,9 +1,9 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
-import { Plus, Minus, Trash2, User } from "lucide-react"
+import { Plus, Minus, Trash2, User, Clock } from "lucide-react"
 import { Input } from "@/components/ui/input"
 
 interface MenuItem {
@@ -15,6 +15,15 @@ interface MenuItem {
 
 interface OrderItem extends MenuItem {
   quantity: number
+}
+
+interface Order {
+  id: string
+  items: OrderItem[]
+  tableResponsible: string
+  total: number
+  status: "pending" | "paid"
+  timestamp: string
 }
 
 const menuItems: MenuItem[] = [
@@ -40,6 +49,14 @@ const MenuSelection = () => {
   const { toast } = useToast()
   const [orderItems, setOrderItems] = useState<OrderItem[]>([])
   const [tableResponsible, setTableResponsible] = useState("")
+  const [previousOrders, setPreviousOrders] = useState<Order[]>([])
+
+  useEffect(() => {
+    const savedOrders = localStorage.getItem("tableOrders")
+    if (savedOrders) {
+      setPreviousOrders(JSON.parse(savedOrders))
+    }
+  }, [])
 
   const handleQuantityChange = (item: MenuItem, change: number) => {
     setOrderItems(prev => {
@@ -93,6 +110,19 @@ const MenuSelection = () => {
       return
     }
 
+    const newOrder: Order = {
+      id: Date.now().toString(),
+      items: [...orderItems],
+      tableResponsible,
+      total: getTotalPrice(),
+      status: "pending",
+      timestamp: new Date().toISOString(),
+    }
+
+    const updatedOrders = [...previousOrders, newOrder]
+    setPreviousOrders(updatedOrders)
+    localStorage.setItem("tableOrders", JSON.stringify(updatedOrders))
+
     toast({
       title: "Pedido enviado",
       description: "Seu pedido foi enviado para a cozinha",
@@ -144,6 +174,44 @@ const MenuSelection = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {bebidas.map(renderMenuItem)}
           </div>
+
+          {previousOrders.length > 0 && (
+            <>
+              <h2 className="text-2xl font-bold my-6">Pedidos Anteriores</h2>
+              <div className="space-y-4">
+                {previousOrders
+                  .filter(order => order.status === "pending")
+                  .map(order => (
+                    <Card key={order.id} className="bg-gray-50">
+                      <CardHeader className="p-4">
+                        <div className="flex justify-between items-center">
+                          <CardTitle className="text-base">
+                            Mesa: {order.tableResponsible}
+                          </CardTitle>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Clock className="h-4 w-4" />
+                            {new Date(order.timestamp).toLocaleTimeString()}
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-4 pt-0">
+                        <div className="space-y-2">
+                          {order.items.map(item => (
+                            <div key={item.id} className="flex justify-between text-sm">
+                              <span>{item.name} x{item.quantity}</span>
+                              <span>€{(item.price * item.quantity).toFixed(2)}</span>
+                            </div>
+                          ))}
+                          <div className="border-t pt-2 mt-2 font-bold">
+                            Total: €{order.total.toFixed(2)}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+              </div>
+            </>
+          )}
         </div>
 
         <div className="lg:col-span-1">
