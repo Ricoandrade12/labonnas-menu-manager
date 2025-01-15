@@ -22,7 +22,6 @@ interface Order {
   id: string
   items: OrderItem[]
   tableResponsible: string
-  tableNumber: string
   total: number
   status: "pending" | "paid"
   timestamp: string
@@ -54,7 +53,6 @@ const MenuSelection = () => {
   const { user } = useAuth()
   const [orderItems, setOrderItems] = useState<OrderItem[]>([])
   const [tableResponsible, setTableResponsible] = useState("")
-  const [tableNumber, setTableNumber] = useState("")
   const [previousOrders, setPreviousOrders] = useState<Order[]>([])
 
   useEffect(() => {
@@ -116,15 +114,6 @@ const MenuSelection = () => {
       return
     }
 
-    if (!tableNumber.trim()) {
-      toast({
-        title: "Erro",
-        description: "Por favor, informe o número da mesa",
-        variant: "destructive",
-      })
-      return
-    }
-
     if (orderItems.length === 0) {
       toast({
         title: "Erro",
@@ -138,7 +127,6 @@ const MenuSelection = () => {
       id: Date.now().toString(),
       items: [...orderItems],
       tableResponsible,
-      tableNumber,
       total: getTotalPrice(),
       status: "pending",
       timestamp: new Date().toISOString(),
@@ -156,7 +144,6 @@ const MenuSelection = () => {
     })
     setOrderItems([])
     setTableResponsible("")
-    setTableNumber("")
   }
 
   const renderMenuItem = (item: MenuItem) => (
@@ -214,7 +201,7 @@ const MenuSelection = () => {
                       <CardHeader className="p-4">
                         <div className="flex justify-between items-center">
                           <CardTitle className="text-base">
-                            Mesa {order.tableNumber}: {order.tableResponsible}
+                            Mesa: {order.tableResponsible}
                           </CardTitle>
                           <div className="flex items-center gap-4">
                             <span className="text-sm text-muted-foreground">
@@ -254,15 +241,6 @@ const MenuSelection = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  <Input
-                    placeholder="Número da Mesa"
-                    value={tableNumber}
-                    onChange={(e) => setTableNumber(e.target.value)}
-                    className="flex-1"
-                  />
-                </div>
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4" />
                   <Input
