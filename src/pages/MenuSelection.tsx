@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
@@ -21,6 +21,7 @@ interface OrderItem extends MenuItem {
 interface Order {
   id: string
   items: OrderItem[]
+  tableNumber: string
   tableResponsible: string
   total: number
   status: "pending" | "paid"
@@ -49,11 +50,15 @@ const bebidas: MenuItem[] = [
 
 const MenuSelection = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { toast } = useToast()
   const { user } = useAuth()
   const [orderItems, setOrderItems] = useState<OrderItem[]>([])
   const [tableResponsible, setTableResponsible] = useState("")
   const [previousOrders, setPreviousOrders] = useState<Order[]>([])
+  
+  // Get table number from URL parameters
+  const tableNumber = new URLSearchParams(location.search).get("table") || ""
 
   useEffect(() => {
     const savedOrders = localStorage.getItem("tableOrders")
@@ -126,6 +131,7 @@ const MenuSelection = () => {
     const newOrder: Order = {
       id: Date.now().toString(),
       items: [...orderItems],
+      tableNumber,
       tableResponsible,
       total: getTotalPrice(),
       status: "pending",
@@ -180,7 +186,13 @@ const MenuSelection = () => {
     <div className="container mx-auto p-4">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          <h2 className="text-2xl font-bold mb-6">Cardápio</h2>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold">Cardápio</h2>
+            <div className="text-lg font-semibold">
+              Mesa: {tableNumber}
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {menuItems.map(renderMenuItem)}
           </div>
@@ -201,7 +213,7 @@ const MenuSelection = () => {
                       <CardHeader className="p-4">
                         <div className="flex justify-between items-center">
                           <CardTitle className="text-base">
-                            Mesa: {order.tableResponsible}
+                            Mesa {order.tableNumber}: {order.tableResponsible}
                           </CardTitle>
                           <div className="flex items-center gap-4">
                             <span className="text-sm text-muted-foreground">
