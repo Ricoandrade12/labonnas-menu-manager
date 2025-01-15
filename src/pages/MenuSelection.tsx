@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { Plus, Minus, Trash2, User, Clock } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { useAuth } from "@/context/AuthContext"
 
 interface MenuItem {
   id: string
@@ -24,6 +25,8 @@ interface Order {
   total: number
   status: "pending" | "paid"
   timestamp: string
+  employeeName: string
+  employeeId: string
 }
 
 const menuItems: MenuItem[] = [
@@ -47,6 +50,7 @@ const bebidas: MenuItem[] = [
 const MenuSelection = () => {
   const navigate = useNavigate()
   const { toast } = useToast()
+  const { user } = useAuth()
   const [orderItems, setOrderItems] = useState<OrderItem[]>([])
   const [tableResponsible, setTableResponsible] = useState("")
   const [previousOrders, setPreviousOrders] = useState<Order[]>([])
@@ -92,6 +96,15 @@ const MenuSelection = () => {
   }
 
   const handleSendToKitchen = () => {
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar logado para criar pedidos",
+        variant: "destructive",
+      })
+      return
+    }
+
     if (!tableResponsible.trim()) {
       toast({
         title: "Erro",
@@ -117,6 +130,8 @@ const MenuSelection = () => {
       total: getTotalPrice(),
       status: "pending",
       timestamp: new Date().toISOString(),
+      employeeName: user.name,
+      employeeId: user.id,
     }
 
     const updatedOrders = [...previousOrders, newOrder]
@@ -188,9 +203,14 @@ const MenuSelection = () => {
                           <CardTitle className="text-base">
                             Mesa: {order.tableResponsible}
                           </CardTitle>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Clock className="h-4 w-4" />
-                            {new Date(order.timestamp).toLocaleTimeString()}
+                          <div className="flex items-center gap-4">
+                            <span className="text-sm text-muted-foreground">
+                              Funcionário: {order.employeeName}
+                            </span>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Clock className="h-4 w-4" />
+                              {new Date(order.timestamp).toLocaleTimeString()}
+                            </div>
                           </div>
                         </div>
                       </CardHeader>
